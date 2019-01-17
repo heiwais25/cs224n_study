@@ -138,10 +138,10 @@ def outputPredictions(dataset, features, labels, clf, filename):
     """ Write the predictions to file """
     pred = clf.predict(features)
     with open(filename, "w") as f:
-        print >> f, "True\tPredicted\tText"
-        for i in xrange(len(dataset)):
-            print >> f, "%d\t%d\t%s" % (
-                labels[i], pred[i], " ".join(dataset[i][0]))
+        f.write("True\tPredicted\tText")
+        for i in range(len(dataset)):
+            f.write("%d\t%d\t%s" % (
+                labels[i], pred[i], " ".join(dataset[i][0])))
 
 
 def main(args):
@@ -150,6 +150,7 @@ def main(args):
     # Load the dataset
     dataset = StanfordSentiment()
     tokens = dataset.tokens()
+    print(tokens)
     nWords = len(tokens)
 
     if args.yourvectors:
@@ -166,7 +167,7 @@ def main(args):
     nTrain = len(trainset)
     trainFeatures = np.zeros((nTrain, dimVectors))
     trainLabels = np.zeros((nTrain,), dtype=np.int32)
-    for i in xrange(nTrain):
+    for i in range(nTrain):
         words, trainLabels[i] = trainset[i]
         trainFeatures[i, :] = getSentenceFeatures(tokens, wordVectors, words)
 
@@ -175,7 +176,7 @@ def main(args):
     nDev = len(devset)
     devFeatures = np.zeros((nDev, dimVectors))
     devLabels = np.zeros((nDev,), dtype=np.int32)
-    for i in xrange(nDev):
+    for i in range(nDev):
         words, devLabels[i] = devset[i]
         devFeatures[i, :] = getSentenceFeatures(tokens, wordVectors, words)
 
@@ -184,7 +185,7 @@ def main(args):
     nTest = len(testset)
     testFeatures = np.zeros((nTest, dimVectors))
     testLabels = np.zeros((nTest,), dtype=np.int32)
-    for i in xrange(nTest):
+    for i in range(nTest):
         words, testLabels[i] = testset[i]
         testFeatures[i, :] = getSentenceFeatures(tokens, wordVectors, words)
 
@@ -192,7 +193,7 @@ def main(args):
     results = []
     regValues = getRegularizationValues()
     for reg in regValues:
-        print "Training for reg=%f" % reg
+        print ("Training for reg=%f" % reg)
         # Note: add a very small number to regularization to please the library
         clf = LogisticRegression(C=1.0/(reg + 1e-12))
         clf.fit(trainFeatures, trainLabels)
@@ -200,19 +201,19 @@ def main(args):
         # Test on train set
         pred = clf.predict(trainFeatures)
         trainAccuracy = accuracy(trainLabels, pred)
-        print "Train accuracy (%%): %f" % trainAccuracy
+        print ("Train accuracy (%%): %f" % trainAccuracy)
 
         # Test on dev set
         pred = clf.predict(devFeatures)
         devAccuracy = accuracy(devLabels, pred)
-        print "Dev accuracy (%%): %f" % devAccuracy
+        print ("Dev accuracy (%%): %f" % devAccuracy)
 
         # Test on test set
         # Note: always running on test is poor style. Typically, you should
         # do this only after validation.
         pred = clf.predict(testFeatures)
         testAccuracy = accuracy(testLabels, pred)
-        print "Test accuracy (%%): %f" % testAccuracy
+        print ("Test accuracy (%%): %f" % testAccuracy)
 
         results.append({
             "reg": reg,
@@ -221,21 +222,21 @@ def main(args):
             "dev": devAccuracy,
             "test": testAccuracy})
 
-    # Print the accuracies
-    print ""
-    print "=== Recap ==="
-    print "Reg\t\tTrain\tDev\tTest"
+    # Print (the accuracies)
+    print ("")
+    print ("=== Recap ===")
+    print ("Reg\t\tTrain\tDev\tTest")
     for result in results:
-        print "%.2E\t%.3f\t%.3f\t%.3f" % (
+        print ("%.2E\t%.3f\t%.3f\t%.3f" % (
             result["reg"],
             result["train"],
             result["dev"],
-            result["test"])
-    print ""
+            result["test"]))
+    print ("")
 
     bestResult = chooseBestModel(results)
-    print "Best regularization value: %0.2E" % bestResult["reg"]
-    print "Test accuracy (%%): %f" % bestResult["test"]
+    print ("Best regularization value: %0.2E" % bestResult["reg"])
+    print ("Test accuracy (%%): %f" % bestResult["test"])
 
     # do some error analysis
     if args.pretrained:
